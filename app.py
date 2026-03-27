@@ -21,8 +21,8 @@ class Insurance(db.Model):
     age = db.Column(db.Integer,nullable=False)
     price = db.Column(db.Double,nullable=True)
     
-    def __init__(self,rooms):
-        self.rooms = rooms
+    def __init__(self,age):
+        self.age = age
         
 ### CREAMOS UN ESQUEMA PAARA SERIALIZAR LOS DATOS
 ma = Marshmallow(app)
@@ -74,6 +74,25 @@ def insurance_price():
     
     return jsonify(context)
 
+###### RUTAS PARA HOUSING API
+@app.route('/insurance',methods=['POST'])
+def set_data():
+    age = request.json['age']
+    price = predict_price(age)
     
+    #registramos los datos en la tabla
+    new_data = Insurance(age)
+    new_data.price = price
+    db.session.add(new_data)
+    db.session.commit() # insert into housing ...
+    
+    data_schema = InsuranceSchema()
+    
+    context = data_schema.dump(new_data)
+    
+    return jsonify(context)
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
