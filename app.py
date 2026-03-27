@@ -92,6 +92,62 @@ def set_data():
     
     return jsonify(context)
 
+@app.route('/insurance',methods=['GET'])
+def get_data():
+    data = Insurance.query.all() 
+    data_schema = InsuranceSchema(many=True)
+    return jsonify(data_schema.dump(data))
+
+@app.route('/insurance/<int:id>',methods=['GET'])
+def get_data_by_id(id):
+    data = Insurance.query.get(id) 
+    data_schema = InsuranceSchema()
+    
+    return jsonify(data_schema.dump(data)),200 if data else 404
+
+@app.route('/insurance/<int:id>',methods=['PUT'])
+def update_data(id):
+    data = Insurance.query.get(id) #select * from insurance where id = id
+    if not data:
+        context = {
+            'message':'Registro no encontrado'
+        }
+        return jsonify(context),404
+    
+    age = request.json['age']
+    price = predict_price(age)
+    
+    data.age = age
+    data.price = price
+    db.session.commit()
+    
+    data_schema = InsuranceSchema()
+    
+    return jsonify(data_schema.dump(data)),200
+
+@app.route('/insurance/<int:id>',methods=['DELETE'])
+def delete_data(id):
+    data = Insurance.query.get(id)
+    
+    if not data:
+        context = {
+            'message':'Registro no encontrado'
+        }
+        return jsonify(context),404
+    
+    db.session.delete(data) #delete from insurance
+    db.session.commit()
+    
+    context = {
+        'message':'Registro eliminado correctamente'
+    }
+    
+    return jsonify(context),200
+
+
+
+
+
 
 
 if __name__ == '__main__':
